@@ -1,5 +1,5 @@
 path: ../data
-train: images/train
+train: images/train_aug
 val: images/val
 nc: 16
 names:
@@ -19,3 +19,4 @@ names:
 - trash_plastic
 - trash_rubber
 - trash_wood
+test: images/test
