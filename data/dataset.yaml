@@ -1,5 +1,5 @@
-path: ../data
-train: images/train_aug
+path: D:/UNDERWATER_DRONE/Human-Controlled-AI-Assisted-Underwater-Monitoring-Drone/data
+train: images/train
 val: images/val
 nc: 16
 names:
