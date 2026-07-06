@@ -1,0 +1,22 @@
+path: D:/UNDERWATER_DRONE/Human-Controlled-AI-Assisted-Underwater-Monitoring-Drone/data
+train: images/train
+val: images/val
+nc: 16
+names:
+- rov
+- plant
+- animal_fish
+- animal_starfish
+- animal_shells
+- animal_crab
+- animal_eel
+- animal_etc
+- trash_etc
+- trash_fabric
+- trash_fishing_gear
+- trash_metal
+- trash_paper
+- trash_plastic
+- trash_rubber
+- trash_wood
+test: images/test
