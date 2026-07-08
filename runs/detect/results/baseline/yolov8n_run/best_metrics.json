@@ -1,0 +1,8 @@
+{
+  "mAP50": 0.97727,
+  "mAP50-95": 0.78623,
+  "precision": 0.94436,
+  "recall": 0.94283,
+  "best_epoch": 149,
+  "training_time_seconds": 20513.82
+}

@@ -1,0 +1,17 @@
+{
+  "venvPath": ".",
+  "venv": "venv",
+  "pythonVersion": "3.13",
+  "include": [
+    "models",
+    "scripts"
+  ],
+  "exclude": [
+    "venv",
+    "runs",
+    "results",
+    "data",
+    "notebooks"
+  ],
+  "typeCheckingMode": "basic"
+}

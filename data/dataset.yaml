@@ -1,6 +1,7 @@
-path: D:/UNDERWATER_DRONE/Human-Controlled-AI-Assisted-Underwater-Monitoring-Drone/data
-train: images/train
-val: images/val
+path: C:\Users\ADITYA\Desktop\underwater drone\data
+train: images\train
+val: images\val
+test: images\test
 nc: 16
 names:
 - rov
@@ -19,4 +20,3 @@ names:
 - trash_plastic
 - trash_rubber
 - trash_wood
-test: images/test
