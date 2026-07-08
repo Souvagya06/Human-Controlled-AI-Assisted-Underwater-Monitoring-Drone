@@ -4,8 +4,9 @@
 # =============================================================================
 
 # --- Model & Data ---
-model: runs/detect/results/darkwater/darkwater_run/weights/last.pt
-resume: true
+model: models/yolo-darkwater.yaml
+transfer_weights: yolov8n.pt              # Partial transfer from YOLOv8n pretrained
+resume: false
 data: data/dataset.yaml              # Will be resolved to absolute path by train.py
 
 # --- Training Duration ---

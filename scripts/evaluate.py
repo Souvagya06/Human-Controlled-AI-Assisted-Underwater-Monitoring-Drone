@@ -149,7 +149,11 @@ def evaluate_model(model_weights_path: str, data_yaml_path: str, model_name: str
     try:
         from ultralytics.utils.torch_utils import model_info
         # model_info returns (total_params, trainable_params, gradients, gflops)
-        total_params, trainable_params, _, gflops = model_info(model.model, imgsz=640, verbose=False)
+        # Guard against None return in newer Ultralytics versions
+        _info = model_info(model.model, imgsz=640, verbose=False)
+        if _info is None:
+            raise RuntimeError("model_info returned None")
+        total_params, trainable_params, _, gflops = _info
     except Exception:
         total_params = sum(p.numel() for p in model.model.parameters())  # type: ignore[union-attr]
         trainable_params = sum(p.numel() for p in model.model.parameters() if p.requires_grad)  # type: ignore[union-attr]

@@ -198,18 +198,17 @@ class TestSuiteEvaluator:
             b_tp, b_fp, b_fn = self.match_detections(gt_boxes, b_pred_boxes)
             dw_tp, dw_fp, dw_fn = self.match_detections(gt_boxes, dw_pred_boxes)
             
-            baseline_tp += b_tp
-            baseline_fp += b_fp
-            baseline_fn += b_fn
-            
-            dw_tp += dw_tp  # Wait typo here, should be dw_tp += dw_tp (ah, need to assign it correctly: dw_tp += dw_tp, no, wait: dw_tp += dw_tp is a bug. Let me make sure it is dw_tp += dw_tp_val, etc.)
-            # Let me rewrite this match logic clean:
-            # Let match_detections return counts
-            
-            dw_tp += dw_tp
-            
-            # Let's fix this in the code below.
-            
+            b_tp_acc, b_fp_acc, b_fn_acc = b_tp, b_fp, b_fn
+            dw_tp_acc, dw_fp_acc, dw_fn_acc = dw_tp, dw_fp, dw_fn
+
+            baseline_tp += b_tp_acc
+            baseline_fp += b_fp_acc
+            baseline_fn += b_fn_acc
+
+            dw_tp += dw_tp_acc
+            dw_fp += dw_fp_acc
+            dw_fn += dw_fn_acc
+
             # Save visual sample for the first image
             if not visual_saved and idx == 0:
                 self.save_visual_sample(transformed, gt_boxes, b_res.boxes.xyxy.cpu().numpy(), dw_res.boxes.xyxy.cpu().numpy(), condition)
@@ -354,15 +353,19 @@ class TestSuiteEvaluator:
 
 
 def find_trained_weights(model_type: str) -> str:
-    search_dir = REPO_ROOT / "results" / model_type
-    if not search_dir.exists():
-        return ""
-    best_weights = list(search_dir.glob("**/weights/best.pt"))
-    if best_weights:
-        return str(best_weights[0])
-    last_weights = list(search_dir.glob("**/weights/last.pt"))
-    if last_weights:
-        return str(last_weights[0])
+    candidate_dirs = [
+        REPO_ROOT / "results" / model_type,
+        REPO_ROOT / "runs" / "detect" / "results" / model_type,
+    ]
+    for search_dir in candidate_dirs:
+        if not search_dir.exists():
+            continue
+        best_weights = list(search_dir.glob("**/weights/best.pt"))
+        if best_weights:
+            return str(best_weights[0])
+        last_weights = list(search_dir.glob("**/weights/last.pt"))
+        if last_weights:
+            return str(last_weights[0])
     return ""
 
 
