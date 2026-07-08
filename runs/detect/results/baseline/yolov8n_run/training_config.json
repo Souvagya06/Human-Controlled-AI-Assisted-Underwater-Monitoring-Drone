@@ -1,0 +1,16 @@
+{
+  "config_file": "configs/train_baseline.yaml",
+  "training_time_seconds": 20513.82,
+  "hyperparameters": {
+    "epochs": 150,
+    "patience": 30,
+    "lr0": 0.01,
+    "lrf": 0.01,
+    "optimizer": "AdamW",
+    "imgsz": 640,
+    "batch": 16,
+    "seed": 42,
+    "loss_type": "ciou",
+    "enable_preprocessing": false
+  }
+}

@@ -38,18 +38,22 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 def get_loss_data(run_type: str) -> pd.DataFrame | None:
     """Finds and parses the training results.csv file."""
-    search_dir = REPO_ROOT / "results" / run_type
-    if not search_dir.exists():
-        return None
-        
-    csv_files = list(search_dir.glob("**/results.csv"))
-    if csv_files:
-        try:
-            df = pd.read_csv(csv_files[0])
-            df.columns = [c.strip() for c in df.columns]
-            return df
-        except Exception:
-            pass
+    # Search in results/ and runs/detect/results/ (where train.py saves output)
+    candidate_dirs = [
+        REPO_ROOT / "results" / run_type,
+        REPO_ROOT / "runs" / "detect" / "results" / run_type,
+    ]
+    for search_dir in candidate_dirs:
+        if not search_dir.exists():
+            continue
+        csv_files = list(search_dir.glob("**/results.csv"))
+        if csv_files:
+            try:
+                df = pd.read_csv(csv_files[0])
+                df.columns = [c.strip() for c in df.columns]
+                return df
+            except Exception:
+                pass
     return None
 
 

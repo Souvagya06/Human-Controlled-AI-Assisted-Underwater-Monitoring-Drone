@@ -186,20 +186,24 @@ def evaluate_model(model_weights_path: str, data_yaml_path: str, model_name: str
 
 
 def find_trained_weights(model_type: str) -> str:
-    """Finds best.pt weights in results/baseline/ or results/darkwater/."""
-    search_dir = REPO_ROOT / "results" / model_type
-    if not search_dir.exists():
-        return ""
+    """Finds best.pt weights in results/ or runs/detect/results/ directories."""
+    # Search in multiple candidate locations (train.py saves into runs/detect/results/)
+    candidate_dirs = [
+        REPO_ROOT / "results" / model_type,
+        REPO_ROOT / "runs" / "detect" / "results" / model_type,
+    ]
     
-    # Find best.pt recursively
-    best_weights = list(search_dir.glob("**/weights/best.pt"))
-    if best_weights:
-        return str(best_weights[0])
-    
-    # Fallback to last.pt
-    last_weights = list(search_dir.glob("**/weights/last.pt"))
-    if last_weights:
-        return str(last_weights[0])
+    for search_dir in candidate_dirs:
+        if not search_dir.exists():
+            continue
+        # Find best.pt recursively
+        best_weights = list(search_dir.glob("**/weights/best.pt"))
+        if best_weights:
+            return str(best_weights[0])
+        # Fallback to last.pt
+        last_weights = list(search_dir.glob("**/weights/last.pt"))
+        if last_weights:
+            return str(last_weights[0])
         
     return ""
 
