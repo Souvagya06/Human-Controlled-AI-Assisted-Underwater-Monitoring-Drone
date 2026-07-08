@@ -1,0 +1,55 @@
+# =============================================================================
+# YOLO-DarkWater Project — Baseline Training Configuration
+# Model: YOLOv8n (pretrained on COCO)
+# =============================================================================
+
+# --- Model & Data ---
+model: yolov8n.pt                    # Pretrained YOLOv8n weights
+data: data/dataset.yaml              # Will be resolved to absolute path by train.py
+
+# --- Training Duration ---
+epochs: 150
+imgsz: 640
+
+# --- Batch & Workers ---
+batch: 16
+workers: 4
+
+# --- Optimizer ---
+optimizer: AdamW
+lr0: 0.01                            # Initial LR — standard for pretrained YOLOv8n
+lrf: 0.01                            # Final LR = lr0 * lrf
+momentum: 0.937
+weight_decay: 0.0005
+
+# --- Warmup ---
+warmup_epochs: 3
+warmup_momentum: 0.8
+warmup_bias_lr: 0.1
+
+# --- Augmentation ---
+augment: true                        # Ultralytics built-in augmentation
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+fliplr: 0.5
+mosaic: 1.0
+
+# --- Device & Reproducibility ---
+device: "0"                          # GPU 0 (RTX 5050)
+seed: 42
+deterministic: true
+
+# --- Output ---
+project: results/baseline
+name: yolov8n_run
+save_period: 25                      # Save checkpoint every N epochs
+exist_ok: true
+plots: true
+
+# --- DarkWater-specific flags (unused for baseline, kept for config parity) ---
+enable_preprocessing: false          # Underwater enhancement OFF for baseline
+loss_type: ciou                      # Standard CIoU loss for baseline
