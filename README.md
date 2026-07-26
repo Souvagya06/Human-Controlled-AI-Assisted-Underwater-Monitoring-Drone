@@ -81,6 +81,7 @@ In terms of handling backscatter, the base model struggles with floating particl
 On object contrast, the base model suffers from low local contrast, which causes small or camouflaged objects to blend into the background. The Custom Model, by contrast, achieves high local contrast through LAB CLAHE and unsharp masking, making objects stand out sharply from their surroundings.
 
 Finally, in terms of detection performance, the base model shows higher false negative and false positive rates due to poor visibility and obscured features. The Custom Model, on the other hand, delivers optimized bounding box localization and a higher mean Average Precision (mAP) on underwater targets.
+
 ---
 
 ## 6. Model Comparison: "YOLO Dark Water" vs. "YOLO Custom Model"
