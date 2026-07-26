@@ -1,0 +1,10 @@
+# Ignore heavy datasets and trained weights
+dataset/
+dataset_enhanced/
+runs/
+*.pt
+
+# Python and Jupyter cache
+__pycache__/
+.ipynb_checkpoints/
+.vscode/
