@@ -1,0 +1,51 @@
+# YOLOv8n full custom architecture: P2 head, BiFPN neck, CBAM attention, 4-scale detection
+parameters:
+  nc: 16  # number of classes
+  scales:
+    n: [0.33, 0.25, 1024]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]          # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]         # 1-P2/4
+  - [-1, 3, C2f, [128, True]]
+  - [-1, 1, Conv, [256, 3, 2]]         # 3-P3/8
+  - [-1, 6, C2f, [256, True]]
+  - [-1, 1, Conv, [512, 3, 2]]         # 5-P4/16
+  - [-1, 6, C2f, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]]        # 7-P5/32
+  - [-1, 3, C2f, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5]]           # 9 - SPPCSPC context pooling variant compatible
+
+head:
+  # BiFPN-style weighted feature fusion (Top-down pathway)
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 6], 1, Concat, [1]]          
+  - [-1, 3, C2f, [512, False]]         # 12
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 4], 1, Concat, [1]]          
+  - [-1, 3, C2f, [256, False]]         # 15 (P3/8-medium)
+
+  # CBAM Attention Module at P3 scale
+  - [-1, 1, CBAM, [256]]               # 16
+
+  # P2 Small-Object Resolution Branch
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 2], 1, Concat, [1]]          
+  - [-1, 3, C2f, [128, False]]         # 19 (P2/4 - tiny debris/fish)
+
+  # BiFPN-style Bottom-up pathway linking back up
+  - [-1, 1, Conv, [128, 3, 2]]
+  - [[-1, 16], 1, Concat, [1]]         
+  - [-1, 3, C2f, [256, False]]         # 22 (P3/8)
+
+  - [-1, 1, Conv, [256, 3, 2]]
+  - [[-1, 12], 1, Concat, [1]]         
+  - [-1, 3, C2f, [512, False]]         # 25 (P4/16)
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 9], 1, Concat, [1]]          
+  - [-1, 3, C2f, [1024, False]]        # 28 (P5/32)
+
+  # 4-scale Detection Head (P2, P3, P4, P5)
+  - [[19, 23, 26, 29], 1, Detect, [nc]]

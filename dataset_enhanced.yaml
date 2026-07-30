@@ -1,0 +1,6 @@
+path: D:\underwater_drone_custom_model\dataset_enhanced
+train: images/train
+val: images/val
+
+nc: 16
+names: ['rov', 'plant', 'animal_fish', 'animal_starfish', 'animal_jellyfish', 'animal_penguin', 'animal_turtle', 'animal_crab', 'animal_seahorse', 'animal_shell', 'human_diver', 'trash_bag', 'trash_cup', 'trash_bottle', 'trash_can', 'trash_net']
