@@ -18,10 +18,10 @@ def run_smoke_test():
     preds = torch.tensor([[10.0, 10.0, 50.0, 50.0], [20.0, 20.0, 60.0, 60.0]], requires_grad=True)
     targets = torch.tensor([[12.0, 12.0, 48.0, 48.0], [18.0, 18.0, 58.0, 58.0]])
     
-    loss = wiou(preds, targets)
-    loss.backward()
-    assert not torch.isnan(loss), "Wise-IoU loss returned NaN!"
-    print("[PASS] Wise-IoU v3 gradient flow and NaN check passed.")
+    loss, r_hat = wiou(preds, targets)
+    loss.mean().backward()
+    assert not torch.isnan(loss).any(), "Wise-IoU loss returned NaN!"
+    print(f"[PASS] Wise-IoU v3 gradient flow and NaN check passed. r_hat={r_hat.item():.4f}")
 
     model = YOLO('yolo-custom.yaml')
     print("[PASS] Custom YOLO architecture YAML loaded successfully.")

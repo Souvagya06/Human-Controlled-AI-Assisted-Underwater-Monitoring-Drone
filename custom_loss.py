@@ -1,6 +1,9 @@
 import torch
-import torch.nn as nn
-from ultralytics.utils.loss import v8DetectionLoss
+import torch.nn.functional as F
+from torch import nn
+from ultralytics.utils.loss import v8DetectionLoss, BboxLoss
+from ultralytics.utils.tal import bbox2dist
+
 
 class WiseIoULoss(nn.Module):
     def __init__(self, alpha=1.9, delta=3.0):
@@ -31,20 +34,59 @@ class WiseIoULoss(nn.Module):
         bx2, by2 = (b2_x1 + b2_x2) / 2, (b2_y1 + b2_y2) / 2
         rho2 = (bx2 - bx1) ** 2 + (by2 - by1) ** 2
 
-        with torch.no_grad():
-            r = torch.pow(rho2 / c2, self.alpha) / self.delta
-            r = torch.clamp(r, min=1e-7)
-            r_hat = r.mean().detach()
-            beta = torch.pow(r / r_hat, self.alpha - 1.0)
+        r = torch.pow(rho2 / c2, self.alpha) / self.delta
+        r = torch.clamp(r, min=1e-7)
+        r_hat = r.mean().detach()
+        beta = torch.pow(r / r_hat, self.alpha - 1.0)
 
         loss = beta * (1.0 - iou) * torch.exp(rho2 / c2)
-        return loss.mean()
+        return loss, r_hat
+
+
+class WiseIoUBboxLoss(BboxLoss):
+    def __init__(self, reg_max=16, alpha=1.9, delta=3.0):
+        super().__init__(reg_max)
+        self.wiou_loss = WiseIoULoss(alpha=alpha, delta=delta)
+
+    def forward(
+        self,
+        pred_dist,
+        pred_bboxes,
+        anchor_points,
+        target_bboxes,
+        target_scores,
+        target_scores_sum,
+        fg_mask,
+        imgsz,
+        stride,
+    ):
+        # Compute Wise-IoU over ALL anchors so r_hat is batch-normalized across the full anchor set
+        loss_iou_all, _ = self.wiou_loss(pred_bboxes, target_bboxes)
+
+        weight = target_scores[fg_mask].sum(-1, keepdim=True)
+        loss_iou = (loss_iou_all[fg_mask] * weight).sum() / target_scores_sum
+
+        if self.dfl_loss:
+            target_ltrb = bbox2dist(anchor_points, target_bboxes, self.dfl_loss.reg_max - 1)
+            loss_dfl = self.dfl_loss(pred_dist[fg_mask].view(-1, self.dfl_loss.reg_max), target_ltrb[fg_mask]) * weight
+            loss_dfl = loss_dfl.sum() / target_scores_sum
+        else:
+            target_ltrb = bbox2dist(anchor_points, target_bboxes)
+            target_ltrb = target_ltrb * stride
+            target_ltrb[..., 0::2] /= imgsz[1]
+            target_ltrb[..., 1::2] /= imgsz[0]
+            pred_dist = pred_dist * stride
+            pred_dist[..., 0::2] /= imgsz[1]
+            pred_dist[..., 1::2] /= imgsz[0]
+            loss_dfl = (
+                F.l1_loss(pred_dist[fg_mask], target_ltrb[fg_mask], reduction="none").mean(-1, keepdim=True) * weight
+            )
+            loss_dfl = loss_dfl.sum() / target_scores_sum
+
+        return loss_iou, loss_dfl
+
 
 class CustomDetectionLoss(v8DetectionLoss):
-    def __init__(self, model):
-        super().__init__(model)
-        self.wiou_loss = WiseIoULoss()
-
-    def __call__(self, preds, batch):
-        loss, loss_items = super().__call__(preds, batch)
-        return loss, loss_items
+    def __init__(self, model, tal_topk=10, tal_topk2=None, wiou_alpha=1.9, wiou_delta=3.0):
+        super().__init__(model, tal_topk, tal_topk2)
+        self.bbox_loss = WiseIoUBboxLoss(self.reg_max, alpha=wiou_alpha, delta=wiou_delta).to(self.device)
